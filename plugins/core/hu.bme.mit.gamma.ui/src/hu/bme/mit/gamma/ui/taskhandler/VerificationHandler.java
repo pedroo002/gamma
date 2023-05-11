@@ -96,8 +96,17 @@ public class VerificationHandler extends TaskHandler {
 	
 	//
 	
+	protected Integer traceSerialNumber = null;
+	
+	//
+	
 	public VerificationHandler(IFile file) {
 		this(file, true);
+	}
+	
+	public VerificationHandler(IFile file, Integer serialNumber) {
+		this(file, true);
+		traceSerialNumber = serialNumber;
 	}
 	
 	public VerificationHandler(IFile file, boolean serializeTraces) {
@@ -386,7 +395,7 @@ public class VerificationHandler extends TaskHandler {
 		String testFileName = serializeTest ? this.testFileName : null;
 		String packageName = serializeTest ? this.packageName : null;
 		for (ExecutionTrace trace : traces) {
-			serializer.serialize(targetFolderUri, traceFileName, svgFileName,
+			serializer.serialize(targetFolderUri, traceFileName, traceSerialNumber, svgFileName,
 					testFolderUri, testFileName, packageName, trace);
 		}
 	}
@@ -408,17 +417,27 @@ public class VerificationHandler extends TaskHandler {
 		
 		public void serialize(String traceFolderUri, String traceFileName,
 				String testFolderUri, String testFileName, String basePackage, ExecutionTrace trace) throws IOException {
-			this.serialize(traceFolderUri, traceFileName, null, testFolderUri, testFileName, basePackage, trace);
+			this.serialize(traceFolderUri, traceFileName, testFolderUri, testFileName, basePackage, trace);
 		}
 		
-		public void serialize(String traceFolderUri, String traceFileName, String svgFileName,
+		public void serialize(String traceFolderUri, String traceFileName, Integer serial, String svgFileName,
 				String testFolderUri, String testFileName, String basePackage, ExecutionTrace trace) throws IOException {
 			
 			// Model
-			Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
-					traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
-			String fileName = fileNamePair.getKey();
-			Integer id = fileNamePair.getValue();
+			String fileName;
+			Integer id;
+			
+			if (serial == null) {
+				Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
+						traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
+				fileName = fileNamePair.getKey();
+				id = fileNamePair.getValue();
+			}
+			else {
+				fileName = traceFileName + serial.toString() + ".get";
+				id = serial;
+			}
+			
 			serializer.saveModel(trace, traceFolderUri, fileName);
 			
 			// SVG
