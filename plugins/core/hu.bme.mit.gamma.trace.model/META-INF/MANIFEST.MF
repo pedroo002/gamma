@@ -1,12 +1,12 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Gamma Trace Language Metamodel
+Bundle-Name: %pluginName
 Bundle-SymbolicName: hu.bme.mit.gamma.trace.model;singleton:=true
 Bundle-Version: 2.9.0.qualifier
 Bundle-ClassPath: .
-Bundle-Vendor: BME-FTSRG
+Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: hu.bme.mit.gamma.trace.derivedfeatures,
  hu.bme.mit.gamma.trace.model,
  hu.bme.mit.gamma.trace.model.impl,

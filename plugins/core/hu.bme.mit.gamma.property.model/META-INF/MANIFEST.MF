@@ -1,13 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Gamma Property Language Metamodel
+Bundle-Name: %pluginName
 Bundle-SymbolicName: hu.bme.mit.gamma.property.model;singleton:=true
 Automatic-Module-Name: hu.bme.mit.gamma.property.model
 Bundle-Version: 2.9.0.qualifier
 Bundle-ClassPath: .
-Bundle-Vendor: BME-FTSRG
+Bundle-Vendor: %providerName
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Export-Package: hu.bme.mit.gamma.property.derivedfeatures,
  hu.bme.mit.gamma.property.model,
  hu.bme.mit.gamma.property.model.impl,
