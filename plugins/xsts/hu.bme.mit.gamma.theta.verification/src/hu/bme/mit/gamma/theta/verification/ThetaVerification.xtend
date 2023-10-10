@@ -16,16 +16,18 @@ import hu.bme.mit.gamma.verification.util.AbstractVerification
 import hu.bme.mit.gamma.verification.util.AbstractVerifier.Result
 import java.io.File
 import java.util.logging.Level
+import hu.bme.mit.gamma.util.FileUtil
 
 class ThetaVerification extends AbstractVerification {
 	// Singleton
 	public static final ThetaVerification INSTANCE = new ThetaVerification
 	protected new() {}
 	//
+	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
 	
 	override Result execute(File modelFile, File queryFile, String[] arguments) {
 		val fileName = modelFile.name
-		val packageFileName = fileName.unfoldedPackageFileName
+		val packageFileName = fileName.toUnhiddenFileName.unfoldedPackageFileName
 		val gammaPackage = ecoreUtil.normalLoad(modelFile.parent, packageFileName)
 		val queries = fileUtil.loadString(queryFile)
 		

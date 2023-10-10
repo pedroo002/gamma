@@ -52,7 +52,7 @@ class AnalysisModelPreprocessor {
 	
 	def preprocess(Package gammaPackage, List<Expression> topComponentArguments,
 			String targetFolderUri, String fileName, boolean optimize) {
-		val fileNameExtensionless = fileName.extensionlessName
+		val fileNameExtensionless = fileName.extensionlessName.toUnhiddenFileName
 		
 		// Unfolding the given system
 		val modelUnfolder = new ModelUnfolder(gammaPackage)

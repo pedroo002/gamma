@@ -78,6 +78,10 @@ class ThetaVerifier extends AbstractVerifier {
 			command +=
 				#["--model", modelFile.canonicalPath, "--property", queryFile.canonicalPath,
 					"--cex", traceFile.canonicalPath, "--stacktrace"]
+			// Add visualize argument
+			val dot = traceFile.canonicalPath.extensionlessName + ".dot"
+			command +=
+				#["--visualize", dot]
 			// Executing the command
 			logger.log(Level.INFO, "Executing command: " + command.join(" "))
 			process = Runtime.getRuntime().exec(command)
