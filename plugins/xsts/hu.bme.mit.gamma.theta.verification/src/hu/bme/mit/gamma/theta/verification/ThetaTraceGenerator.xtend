@@ -23,6 +23,7 @@ import java.util.List
 import java.util.Scanner
 import java.util.logging.Level
 import java.util.logging.Logger
+import hu.bme.mit.gamma.util.FileUtil
 
 class ThetaTraceGenerator {
 
@@ -35,10 +36,12 @@ class ThetaTraceGenerator {
 
 	final String ENVIRONMENT_VARIABLE_FOR_THETA_JAR = "THETA_XSTS_CLI_PATH"
 	protected final Logger logger = Logger.getLogger("GammaLogger")
+	
+	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
 
 	def List<ExecutionTrace> execute(File modelFile, boolean fullTraces, List<String> variableList,
 			boolean noTransitionCoverage, boolean useAbstraction) {
-		val packageFileName = modelFile.name.unfoldedPackageFileName
+		val packageFileName = modelFile.name.toUnhiddenFileName.unfoldedPackageFileName
 		val gammaPackage = ecoreUtil.normalLoad(modelFile.parent, packageFileName)
 
 		return generateTraces(gammaPackage, modelFile, fullTraces, variableList,

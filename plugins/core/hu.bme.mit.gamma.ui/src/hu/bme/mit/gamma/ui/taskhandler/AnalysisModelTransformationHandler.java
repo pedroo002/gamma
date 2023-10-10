@@ -163,7 +163,7 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 		protected void serializeProperties(String fileName) throws IOException {
 			try {
 				File propertyFile = new File(targetFolderUri + File.separator +
-					fileNamer.getHiddenEmfPropertyFileName(fileName));
+					fileNamer.getHiddenEmfPropertyFileName(fileName)); //toUnHidden?
 				PropertyPackage propertyPackage = (PropertyPackage) ecoreUtil.normalLoad(propertyFile);
 				// ! The object has to be removed from the resource if we want to serialize it
 				ecoreUtil.deleteResource(propertyPackage);
