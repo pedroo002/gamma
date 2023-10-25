@@ -88,7 +88,5 @@ abstract class AbstractVerifier {
 			}
 			return new Result(ThreeStateBoolean.UNDEF, extendedTrace)
 		}
-		
 	}
-	
 }

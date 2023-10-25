@@ -13,10 +13,12 @@ package hu.bme.mit.gamma.theta.verification
 import hu.bme.mit.gamma.util.InterruptableCallable
 import hu.bme.mit.gamma.util.ThreadRacer
 import hu.bme.mit.gamma.verification.util.AbstractVerification
+//import hu.bme.mit.gamma.verification.util.AbstractVerifier.ExtendedResult
 import hu.bme.mit.gamma.verification.util.AbstractVerifier.Result
 import java.io.File
 import java.util.logging.Level
 import hu.bme.mit.gamma.util.FileUtil
+import hu.bme.mit.gamma.trace.util.TraceUtil
 
 class ThetaVerification extends AbstractVerification {
 	// Singleton
@@ -24,6 +26,8 @@ class ThetaVerification extends AbstractVerification {
 	protected new() {}
 	//
 	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
+	//
+	protected final extension TraceUtil traceUtil = TraceUtil.INSTANCE
 	
 	override Result execute(File modelFile, File queryFile, String[] arguments) {
 		val fileName = modelFile.name
@@ -32,6 +36,7 @@ class ThetaVerification extends AbstractVerification {
 		val queries = fileUtil.loadString(queryFile)
 		
 		var Result result = null
+		//var ExtendedResult extRes = null
 		
 		for (query : queries.splitLines) {
 			// Racing for every query separately
@@ -49,6 +54,11 @@ class ThetaVerification extends AbstractVerification {
 						logger.log(Level.INFO, '''Starting Theta on thread «currentThread.name» with "«argument»"''')
 						val result = verifier.verifyQuery(gammaPackage, argument, modelFile, queries)
 						logger.log(Level.INFO, '''Thread «currentThread.name» with "«argument»" has won''')
+						//val trace = result.trace
+						//traceUtil.addComment(trace, query)
+						//traceUtil.sortInstanceStates(trace)
+						//val traceFile = ecoreUtil.getFile(trace.eResource()) as File
+						logger.log(Level.WARNING, '''DEBUG ThetaVerification:61 - arguments «argument»''')
 						return result
 					}
 					
@@ -60,6 +70,11 @@ class ThetaVerification extends AbstractVerification {
 				}
 			}
 			
+			/*for (InterruptableCallable<Result> c : callables) {
+				val res = c.call()
+				var i = 0
+			}*/
+			
 			val newResult = racer.execute(callables)
 			
 			if (result === null) {
@@ -69,7 +84,7 @@ class ThetaVerification extends AbstractVerification {
 				result = result.extend(newResult)
 			}
 		}
-		
+		logger.log(Level.WARNING, '''DEBUG ThetaVerification:87 - return execute()''')
 		return result
 	}
 	

@@ -80,8 +80,7 @@ class ThetaVerifier extends AbstractVerifier {
 					"--cex", traceFile.canonicalPath, "--stacktrace"]
 			// Add visualize argument
 			val dot = traceFile.canonicalPath.extensionlessName + ".dot"
-			command +=
-				#["--visualize", dot]
+			command += #["--visualize", dot]
 			// Executing the command
 			logger.log(Level.INFO, "Executing command: " + command.join(" "))
 			process = Runtime.getRuntime().exec(command)
@@ -121,7 +120,7 @@ class ThetaVerifier extends AbstractVerifier {
 			val gammaPackage = traceability as Package
 			traceFileScanner = new Scanner(traceFile)
 			val trace = gammaPackage.backAnnotate(traceFileScanner)
-			
+			logger.log(Level.WARNING, '''DEBUG ThetaVerifier:124 - backannotate with parameters «parameters»''')
 			return new Result(result, trace)
 		} finally {
 			resultReader?.close

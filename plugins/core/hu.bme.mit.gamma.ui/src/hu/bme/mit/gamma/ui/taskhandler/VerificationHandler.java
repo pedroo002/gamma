@@ -26,6 +26,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IFile;
@@ -88,6 +89,9 @@ public class VerificationHandler extends TaskHandler {
 	protected final List<ExecutionTrace> traces = new ArrayList<ExecutionTrace>();
 	
 	//
+	
+	protected final FileUtil fileUtil = FileUtil.INSTANCE;
+	protected final Logger logger = Logger.getLogger("GammaLogger");
 	
 	protected final TraceUtil traceUtil = TraceUtil.INSTANCE;
 	protected final PropertyUtil propertyUtil = PropertyUtil.INSTANCE;
@@ -228,9 +232,12 @@ public class VerificationHandler extends TaskHandler {
 			
 			Stopwatch stopwatch = Stopwatch.createStarted();
 			
+			logger.log(Level.WARNING, "DEBUG VerificationHandler:235 - before execute()");
 			Result result = execute(verificationTask, modelFile, queryFile, arguments,
 					retrievedTraces, isOptimize);
+			logger.log(Level.WARNING, "DEBUG VerificationHandler:238 - after execute()");
 			ExecutionTrace trace = result.getTrace();
+			
 			ThreeStateBoolean verificationResult = result.getResult();
 			
 			stopwatch.stop();
