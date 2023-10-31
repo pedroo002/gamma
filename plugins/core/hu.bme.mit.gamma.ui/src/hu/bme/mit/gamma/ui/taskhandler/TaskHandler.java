@@ -101,10 +101,19 @@ public abstract class TaskHandler {
 				}
 			}
 			task.getTargetFolder().add(targetFolder);
+			
+			// Setting the attribute, the target folder is a RELATIVE path now from the project
+						targetFolderUri = URI.decode(
+								projectLocation + File.separator + task.getTargetFolder().get(0));
 		}
-		// Setting the attribute, the target folder is a RELATIVE path now from the project
-		targetFolderUri = URI.decode(
-				projectLocation + File.separator + task.getTargetFolder().get(0));
+		else if (new File(task.getTargetFolder().get(0)).isAbsolute()) {
+			targetFolderUri = task.getTargetFolder().get(0);
+		}
+		else {
+			// Setting the attribute, the target folder is a RELATIVE path now from the project
+			targetFolderUri = URI.decode(
+					projectLocation + File.separator + task.getTargetFolder().get(0));
+		}
 	}
 	
 	protected String getNameWithoutExtension(String fileName) {
