@@ -37,6 +37,9 @@ import com.google.common.base.Stopwatch;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import hu.bme.mit.gamma.expression.model.EqualityExpression;
+import hu.bme.mit.gamma.expression.model.Expression;
+import hu.bme.mit.gamma.expression.model.FalseExpression;
 import hu.bme.mit.gamma.genmodel.model.AnalysisLanguage;
 import hu.bme.mit.gamma.genmodel.model.Verification;
 import hu.bme.mit.gamma.plantuml.serialization.SvgSerializer;
@@ -51,10 +54,12 @@ import hu.bme.mit.gamma.querygenerator.serializer.PropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.ThetaPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.UppaalPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.XstsUppaalPropertySerializer;
+import hu.bme.mit.gamma.statechart.composite.ComponentInstanceVariableReferenceExpression;
 import hu.bme.mit.gamma.statechart.derivedfeatures.StatechartModelDerivedFeatures;
 import hu.bme.mit.gamma.statechart.interface_.Component;
 import hu.bme.mit.gamma.theta.verification.ThetaVerification;
 import hu.bme.mit.gamma.trace.model.ExecutionTrace;
+import hu.bme.mit.gamma.trace.model.Step;
 import hu.bme.mit.gamma.trace.testgeneration.java.TestGenerator;
 import hu.bme.mit.gamma.trace.util.TraceUtil;
 import hu.bme.mit.gamma.transformation.util.GammaFileNamer;
@@ -104,6 +109,10 @@ public class VerificationHandler extends TaskHandler {
 	
 	//
 	
+	protected ArrayList<String> transitionIds = null;
+	
+	//
+	
 	public VerificationHandler(IFile file) {
 		this(file, true);
 	}
@@ -116,6 +125,13 @@ public class VerificationHandler extends TaskHandler {
 	public VerificationHandler(IFile file, boolean serializeTraces) {
 		super(file);
 		this.serializeTraces = serializeTraces;
+	}
+	
+	//
+	
+	public void setTransitionIds(ArrayList<String> ids) {
+		transitionIds = new ArrayList<String>();
+		transitionIds.addAll(ids);
 	}
 	
 	//
@@ -237,6 +253,27 @@ public class VerificationHandler extends TaskHandler {
 					retrievedTraces, isOptimize);
 			logger.log(Level.WARNING, "DEBUG VerificationHandler:238 - after execute()");
 			ExecutionTrace trace = result.getTrace();
+			
+			// Filter transition-coverage info in trace
+			if (transitionIds != null) {
+				for (Step step : trace.getSteps()) {
+					ArrayList<Expression> falseTransitionExpressions = new ArrayList<Expression>();
+					for (Expression expr : step.getAsserts()) {
+						if (expr instanceof EqualityExpression) {
+							Expression leftOperand = ((EqualityExpression) expr).getLeftOperand();
+							if (leftOperand instanceof ComponentInstanceVariableReferenceExpression) {
+								String variableName = ((ComponentInstanceVariableReferenceExpression) leftOperand).getVariableDeclaration().getName();
+								if (transitionIds.contains(variableName)) {
+									if (((EqualityExpression) expr).getRightOperand() instanceof FalseExpression) {
+										falseTransitionExpressions.add(expr);
+									}
+								}
+							}
+						}
+					}
+					step.getAsserts().removeAll(falseTransitionExpressions);
+				}
+			}
 			
 			ThreeStateBoolean verificationResult = result.getResult();
 			
