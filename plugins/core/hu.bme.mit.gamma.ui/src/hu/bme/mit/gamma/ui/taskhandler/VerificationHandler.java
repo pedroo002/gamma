@@ -110,6 +110,7 @@ public class VerificationHandler extends TaskHandler {
 	//
 	
 	protected ArrayList<String> transitionIds = null;
+	protected ArrayList<String> variableDeclarations = null;
 	
 	//
 	
@@ -132,6 +133,11 @@ public class VerificationHandler extends TaskHandler {
 	public void setTransitionIds(ArrayList<String> ids) {
 		transitionIds = new ArrayList<String>();
 		transitionIds.addAll(ids);
+	}
+	
+	public void setVariableDeclarations(ArrayList<String> varDecs) {
+		variableDeclarations = new ArrayList<String>();
+		variableDeclarations.addAll(varDecs);
 	}
 	
 	//
@@ -257,21 +263,22 @@ public class VerificationHandler extends TaskHandler {
 			// Filter transition-coverage info in trace
 			if (transitionIds != null) {
 				for (Step step : trace.getSteps()) {
-					ArrayList<Expression> falseTransitionExpressions = new ArrayList<Expression>();
+					ArrayList<Expression> unwantedAssertExpressions = new ArrayList<Expression>();
 					for (Expression expr : step.getAsserts()) {
 						if (expr instanceof EqualityExpression) {
 							Expression leftOperand = ((EqualityExpression) expr).getLeftOperand();
 							if (leftOperand instanceof ComponentInstanceVariableReferenceExpression) {
 								String variableName = ((ComponentInstanceVariableReferenceExpression) leftOperand).getVariableDeclaration().getName();
-								if (transitionIds.contains(variableName)) {
-									if (((EqualityExpression) expr).getRightOperand() instanceof FalseExpression) {
-										falseTransitionExpressions.add(expr);
-									}
+								if (transitionIds.contains(variableName) && ((EqualityExpression) expr).getRightOperand() instanceof FalseExpression) {
+									unwantedAssertExpressions.add(expr);
+								}
+								else if (!transitionIds.contains(variableName) && !variableDeclarations.contains(variableName)) {
+									unwantedAssertExpressions.add(expr);
 								}
 							}
 						}
 					}
-					step.getAsserts().removeAll(falseTransitionExpressions);
+					step.getAsserts().removeAll(unwantedAssertExpressions);
 				}
 			}
 			
