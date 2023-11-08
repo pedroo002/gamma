@@ -120,7 +120,6 @@ class ThetaVerifier extends AbstractVerifier {
 			val gammaPackage = traceability as Package
 			traceFileScanner = new Scanner(traceFile)
 			val trace = gammaPackage.backAnnotate(traceFileScanner)
-			logger.log(Level.WARNING, '''DEBUG ThetaVerifier:124 - backannotate with parameters «parameters»''')
 			return new Result(result, trace)
 		} finally {
 			resultReader?.close

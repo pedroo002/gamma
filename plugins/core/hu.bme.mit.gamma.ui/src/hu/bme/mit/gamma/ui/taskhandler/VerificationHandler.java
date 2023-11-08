@@ -254,10 +254,8 @@ public class VerificationHandler extends TaskHandler {
 			
 			Stopwatch stopwatch = Stopwatch.createStarted();
 			
-			logger.log(Level.WARNING, "DEBUG VerificationHandler:235 - before execute()");
 			Result result = execute(verificationTask, modelFile, queryFile, arguments,
 					retrievedTraces, isOptimize);
-			logger.log(Level.WARNING, "DEBUG VerificationHandler:238 - after execute()");
 			ExecutionTrace trace = result.getTrace();
 			
 			// Filter transition-coverage info in trace

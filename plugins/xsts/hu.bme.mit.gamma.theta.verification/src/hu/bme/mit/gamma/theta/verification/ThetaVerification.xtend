@@ -36,7 +36,6 @@ class ThetaVerification extends AbstractVerification {
 		val queries = fileUtil.loadString(queryFile)
 		
 		var Result result = null
-		//var ExtendedResult extRes = null
 		
 		for (query : queries.splitLines) {
 			// Racing for every query separately
@@ -54,11 +53,6 @@ class ThetaVerification extends AbstractVerification {
 						logger.log(Level.INFO, '''Starting Theta on thread «currentThread.name» with "«argument»"''')
 						val result = verifier.verifyQuery(gammaPackage, argument, modelFile, queries)
 						logger.log(Level.INFO, '''Thread «currentThread.name» with "«argument»" has won''')
-						//val trace = result.trace
-						//traceUtil.addComment(trace, query)
-						//traceUtil.sortInstanceStates(trace)
-						//val traceFile = ecoreUtil.getFile(trace.eResource()) as File
-						logger.log(Level.WARNING, '''DEBUG ThetaVerification:61 - arguments «argument»''')
 						return result
 					}
 					
@@ -84,7 +78,6 @@ class ThetaVerification extends AbstractVerification {
 				result = result.extend(newResult)
 			}
 		}
-		logger.log(Level.WARNING, '''DEBUG ThetaVerification:87 - return execute()''')
 		return result
 	}
 	
