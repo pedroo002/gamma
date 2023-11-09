@@ -55,6 +55,7 @@ import hu.bme.mit.gamma.statechart.composite.ComponentInstanceReferenceExpressio
 import hu.bme.mit.gamma.statechart.interface_.Component;
 import hu.bme.mit.gamma.statechart.interface_.TimeSpecification;
 import hu.bme.mit.gamma.statechart.util.StatechartUtil;
+import hu.bme.mit.gamma.sysml.transformation.StatechartContainer;
 import hu.bme.mit.gamma.transformation.util.GammaFileNamer;
 import hu.bme.mit.gamma.transformation.util.annotations.AnnotatablePreprocessableElements;
 import hu.bme.mit.gamma.transformation.util.annotations.ComponentInstancePortReferences;
@@ -84,8 +85,14 @@ import hu.bme.mit.gamma.xsts.uppaal.transformation.api.Xsts2UppaalTransformerSer
 
 public class AnalysisModelTransformationHandler extends TaskHandler {
 	
+	private StatechartContainer statechartContainer = null;
+	
 	public AnalysisModelTransformationHandler(IFile file) {
 		super(file);
+	}
+	
+	public void setStatechartContainer(StatechartContainer stc) {
+		statechartContainer = stc;
 	}
 	
 	public void execute(AnalysisModelTransformation transformation) throws IOException {
@@ -178,6 +185,9 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 			if (propertyPackage != null) {
 				serializer.saveModel(propertyPackage, targetFolderUri, fileNamer.getHiddenPropertyFileName(fileName));
 				serializeStringProperties(propertyPackage, fileName);
+				if (statechartContainer != null) {
+					statechartContainer.updatePropertyPackage(propertyPackage);
+				}
 			}
 		}
 

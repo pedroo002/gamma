@@ -443,8 +443,15 @@ public class VerificationHandler extends TaskHandler {
 		String testFolderUri = serializeTest ? this.testFolderUri : null;
 		String testFileName = serializeTest ? this.testFileName : null;
 		String packageName = serializeTest ? this.packageName : null;
+		
+		String fileName = traceFileName;
+		if (traces.size() > 1 && traceSerialNumber != null) {
+			fileName = traceFileName + traceSerialNumber.toString();
+			traceSerialNumber = null;
+		}
+		
 		for (ExecutionTrace trace : traces) {
-			serializer.serialize(targetFolderUri, traceFileName, traceSerialNumber, svgFileName,
+			serializer.serialize(targetFolderUri, fileName, traceSerialNumber, svgFileName,
 					testFolderUri, testFileName, packageName, trace);
 		}
 	}
