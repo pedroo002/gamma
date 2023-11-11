@@ -329,7 +329,11 @@ public class VerificationHandler extends TaskHandler {
 		
 		// Note that .get and .json postfix ids will not match if optimization is applied
 		for (VerificationResult verificationResult : retrievedVerificationResults) {
-			serializer.serialize(targetFolderUri, traceFileName, verificationResult);
+			String fileName = traceFileName;
+			if (traceSerialNumber != null) {
+				fileName = traceFileName + traceSerialNumber.toString();
+			}
+			serializer.serialize(targetFolderUri, fileName, verificationResult);
 		}
 	}
 	
@@ -407,7 +411,11 @@ public class VerificationHandler extends TaskHandler {
 			verification.getTestFolder().add("test-gen");
 		}
 		if (!verification.getSvgFileName().isEmpty()) {
-			this.svgFileName = verification.getSvgFileName().get(0);
+			String ser = "";
+			if (traceSerialNumber != null) {
+				ser = traceSerialNumber.toString();
+			}
+			this.svgFileName = verification.getSvgFileName().get(0) + ser;
 		}
 		if (verification.getProgrammingLanguages().isEmpty()) {
 			this.serializeTest = false;
@@ -445,13 +453,16 @@ public class VerificationHandler extends TaskHandler {
 		String packageName = serializeTest ? this.packageName : null;
 		
 		String fileName = traceFileName;
-		if (traces.size() > 1 && traceSerialNumber != null) {
+		if (traceSerialNumber != null) {
 			fileName = traceFileName + traceSerialNumber.toString();
-			traceSerialNumber = null;
+		}
+		
+		if (serializeTest && traceSerialNumber != null) {
+			testFileName = this.testFileName + traceSerialNumber.toString();
 		}
 		
 		for (ExecutionTrace trace : traces) {
-			serializer.serialize(targetFolderUri, fileName, traceSerialNumber, svgFileName,
+			serializer.serialize(targetFolderUri, fileName, svgFileName,
 					testFolderUri, testFileName, packageName, trace);
 		}
 	}
@@ -476,23 +487,13 @@ public class VerificationHandler extends TaskHandler {
 			this.serialize(traceFolderUri, traceFileName, testFolderUri, testFileName, basePackage, trace);
 		}
 		
-		public void serialize(String traceFolderUri, String traceFileName, Integer serial, String svgFileName,
+		public void serialize(String traceFolderUri, String traceFileName, String svgFileName,
 				String testFolderUri, String testFileName, String basePackage, ExecutionTrace trace) throws IOException {
 			
-			// Model
-			String fileName;
-			Integer id;
-			
-			if (serial == null) {
-				Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
-						traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
-				fileName = fileNamePair.getKey();
-				id = fileNamePair.getValue();
-			}
-			else {
-				fileName = traceFileName + serial.toString() + ".get";
-				id = serial;
-			}
+			// Model			
+			Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
+					traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
+			String fileName = fileNamePair.getKey();
 			
 			serializer.saveModel(trace, traceFolderUri, fileName);
 			
@@ -502,14 +503,14 @@ public class VerificationHandler extends TaskHandler {
 				String plantUmlString = transformer.execute();
 				SvgSerializer serializer = SvgSerializer.INSTANCE;
 				String svg = serializer.serialize(plantUmlString);
-				String svgFileNameWithId = svgFileName + id;
+				String svgFileNameWithId = svgFileName;
 				fileUtil.saveString(traceFolderUri + File.separator + svgFileNameWithId + ".svg", svg);
 			}
 			
 			// Test
 			boolean serializeTest = testFolderUri != null && testFileName != null && basePackage != null;
 			if (serializeTest) {
-				String className = testFileName + id;
+				String className = testFileName;
 				
 				TestGenerator testGenerator = new TestGenerator(trace, basePackage, className);
 				String testCode = testGenerator.execute();
