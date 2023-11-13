@@ -263,6 +263,7 @@ public class VerificationHandler extends TaskHandler {
 			
 			// Filter transition-coverage info in trace
 			if (transitionIds != null) {
+				logger.log(Level.INFO, "Keep transition asserts only when they are true");
 				for (Step step : trace.getSteps()) {
 					ArrayList<Expression> unwantedAssertExpressions = new ArrayList<Expression>();
 					for (Expression expr : step.getAsserts()) {
