@@ -57,17 +57,13 @@ class ThetaVerification extends AbstractVerification {
 					}
 					
 					override void cancel() {
+						val currentThread = Thread.currentThread
 						verifier.cancel
-						logger.log(Level.INFO, '''Theta verification instance with "«argument»" has been cancelled''')
+						logger.log(Level.INFO, '''Theta verification instance with "«argument»" has been cancelled on thread «currentThread.name»''')
 					}
 					
 				}
 			}
-			
-			/*for (InterruptableCallable<Result> c : callables) {
-				val res = c.call()
-				var i = 0
-			}*/
 			
 			val newResult = racer.execute(callables)
 			
