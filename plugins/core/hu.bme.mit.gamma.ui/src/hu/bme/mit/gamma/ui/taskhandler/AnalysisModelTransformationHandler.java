@@ -187,6 +187,7 @@ public class AnalysisModelTransformationHandler extends TaskHandler {
 				serializeStringProperties(propertyPackage, fileName);
 				if (statechartContainer != null) {
 					statechartContainer.updatePropertyPackage(propertyPackage);
+					logger.log(Level.INFO, "New property package with transition-coverage expressions are saved");
 				}
 			}
 		}
