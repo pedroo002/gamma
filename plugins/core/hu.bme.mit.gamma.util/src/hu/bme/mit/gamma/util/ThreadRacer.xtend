@@ -33,6 +33,7 @@ class ThreadRacer<T> {
 		
 		val wrappedCallables = newArrayList
 		val futures = newArrayList
+		//val tmp = newArrayList
 		
 		val executor = Executors.newFixedThreadPool(size)
 		try {
@@ -40,6 +41,8 @@ class ThreadRacer<T> {
 				val wrappedCallable = callable.wrap
 				wrappedCallables += wrappedCallable
 				futures += executor.submit(wrappedCallable)
+				//latch.await
+				//tmp.add(object)
 			}
 			
 			// Racing
@@ -47,7 +50,7 @@ class ThreadRacer<T> {
 			latch.await
 			logger.log(Level.INFO, '''A result has been returned''')
 			// One of the threads won
-			
+			logger.log(Level.WARNING, '''ThreadRacer:53 - return object''')
 			return object
 		} finally {
 			// In case of interruption - finally block

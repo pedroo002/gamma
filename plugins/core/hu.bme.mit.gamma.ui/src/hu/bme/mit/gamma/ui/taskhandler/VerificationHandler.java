@@ -26,6 +26,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IFile;
@@ -36,6 +37,9 @@ import com.google.common.base.Stopwatch;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import hu.bme.mit.gamma.expression.model.EqualityExpression;
+import hu.bme.mit.gamma.expression.model.Expression;
+import hu.bme.mit.gamma.expression.model.FalseExpression;
 import hu.bme.mit.gamma.genmodel.model.AnalysisLanguage;
 import hu.bme.mit.gamma.genmodel.model.Verification;
 import hu.bme.mit.gamma.plantuml.serialization.SvgSerializer;
@@ -50,10 +54,12 @@ import hu.bme.mit.gamma.querygenerator.serializer.PropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.ThetaPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.UppaalPropertySerializer;
 import hu.bme.mit.gamma.querygenerator.serializer.XstsUppaalPropertySerializer;
+import hu.bme.mit.gamma.statechart.composite.ComponentInstanceVariableReferenceExpression;
 import hu.bme.mit.gamma.statechart.derivedfeatures.StatechartModelDerivedFeatures;
 import hu.bme.mit.gamma.statechart.interface_.Component;
 import hu.bme.mit.gamma.theta.verification.ThetaVerification;
 import hu.bme.mit.gamma.trace.model.ExecutionTrace;
+import hu.bme.mit.gamma.trace.model.Step;
 import hu.bme.mit.gamma.trace.testgeneration.java.TestGenerator;
 import hu.bme.mit.gamma.trace.util.TraceUtil;
 import hu.bme.mit.gamma.transformation.util.GammaFileNamer;
@@ -89,6 +95,9 @@ public class VerificationHandler extends TaskHandler {
 	
 	//
 	
+	protected final FileUtil fileUtil = FileUtil.INSTANCE;
+	protected final Logger logger = Logger.getLogger("GammaLogger");
+	
 	protected final TraceUtil traceUtil = TraceUtil.INSTANCE;
 	protected final PropertyUtil propertyUtil = PropertyUtil.INSTANCE;
 	protected final StatechartEcoreUtil statechartEcoreUtil = StatechartEcoreUtil.INSTANCE;
@@ -97,6 +106,11 @@ public class VerificationHandler extends TaskHandler {
 	//
 	
 	protected Integer traceSerialNumber = null;
+	
+	//
+	
+	protected ArrayList<String> transitionIds = null;
+	protected ArrayList<String> variableDeclarations = null;
 	
 	//
 	
@@ -112,6 +126,18 @@ public class VerificationHandler extends TaskHandler {
 	public VerificationHandler(IFile file, boolean serializeTraces) {
 		super(file);
 		this.serializeTraces = serializeTraces;
+	}
+	
+	//
+	
+	public void setTransitionIds(ArrayList<String> ids) {
+		transitionIds = new ArrayList<String>();
+		transitionIds.addAll(ids);
+	}
+	
+	public void setVariableDeclarations(ArrayList<String> varDecs) {
+		variableDeclarations = new ArrayList<String>();
+		variableDeclarations.addAll(varDecs);
 	}
 	
 	//
@@ -221,8 +247,11 @@ public class VerificationHandler extends TaskHandler {
 			
 			// Saving the string
 			File file = modelFile;
-			String fileName = fileNamer.getHiddenSerializedPropertyFileName(file.getName());
-			File queryFile = new File(file.getParentFile().toString() + File.separator + fileName);
+			String propertyFileName = fileUtil.getExtensionlessName(fileNamer.getHiddenSerializedPropertyFileName(file.getName()));
+			Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(modelFile.getParent()),
+					propertyFileName, GammaFileNamer.PROPERTY_SERIALIZED_EXTENSION);
+			propertyFileName = fileNamePair.getKey();
+			File queryFile = new File(file.getParentFile().toString() + File.separator + propertyFileName);
 			fileUtil.saveString(queryFile, serializedFormula);
 			queryFile.deleteOnExit();
 			
@@ -231,6 +260,30 @@ public class VerificationHandler extends TaskHandler {
 			Result result = execute(verificationTask, modelFile, queryFile, arguments,
 					retrievedTraces, isOptimize);
 			ExecutionTrace trace = result.getTrace();
+			
+			// Filter transition-coverage info in trace
+			if (transitionIds != null && !transitionIds.isEmpty() && trace != null) {
+				logger.log(Level.INFO, "Keep transition asserts only when they are true");
+				for (Step step : trace.getSteps()) {
+					ArrayList<Expression> unwantedAssertExpressions = new ArrayList<Expression>();
+					for (Expression expr : step.getAsserts()) {
+						if (expr instanceof EqualityExpression) {
+							Expression leftOperand = ((EqualityExpression) expr).getLeftOperand();
+							if (leftOperand instanceof ComponentInstanceVariableReferenceExpression) {
+								String variableName = ((ComponentInstanceVariableReferenceExpression) leftOperand).getVariableDeclaration().getName();
+								if (transitionIds.contains(variableName) && ((EqualityExpression) expr).getRightOperand() instanceof FalseExpression) {
+									unwantedAssertExpressions.add(expr);
+								}
+								else if (!transitionIds.contains(variableName) && !variableDeclarations.contains(variableName)) {
+									unwantedAssertExpressions.add(expr);
+								}
+							}
+						}
+					}
+					step.getAsserts().removeAll(unwantedAssertExpressions);
+				}
+			}
+			
 			ThreeStateBoolean verificationResult = result.getResult();
 			
 			stopwatch.stop();
@@ -280,7 +333,11 @@ public class VerificationHandler extends TaskHandler {
 		
 		// Note that .get and .json postfix ids will not match if optimization is applied
 		for (VerificationResult verificationResult : retrievedVerificationResults) {
-			serializer.serialize(targetFolderUri, traceFileName, verificationResult);
+			String fileName = traceFileName;
+			if (traceSerialNumber != null) {
+				fileName = traceFileName + traceSerialNumber.toString();
+			}
+			serializer.serialize(targetFolderUri, fileName, verificationResult);
 		}
 	}
 	
@@ -358,7 +415,11 @@ public class VerificationHandler extends TaskHandler {
 			verification.getTestFolder().add("test-gen");
 		}
 		if (!verification.getSvgFileName().isEmpty()) {
-			this.svgFileName = verification.getSvgFileName().get(0);
+			String ser = "";
+			if (traceSerialNumber != null) {
+				ser = traceSerialNumber.toString();
+			}
+			this.svgFileName = verification.getSvgFileName().get(0) + ser;
 		}
 		if (verification.getProgrammingLanguages().isEmpty()) {
 			this.serializeTest = false;
@@ -394,8 +455,18 @@ public class VerificationHandler extends TaskHandler {
 		String testFolderUri = serializeTest ? this.testFolderUri : null;
 		String testFileName = serializeTest ? this.testFileName : null;
 		String packageName = serializeTest ? this.packageName : null;
+		
+		String fileName = traceFileName;
+		if (traceSerialNumber != null) {
+			fileName = traceFileName + traceSerialNumber.toString();
+		}
+		
+		if (serializeTest && traceSerialNumber != null) {
+			testFileName = this.testFileName + traceSerialNumber.toString();
+		}
+		
 		for (ExecutionTrace trace : traces) {
-			serializer.serialize(targetFolderUri, traceFileName, traceSerialNumber, svgFileName,
+			serializer.serialize(targetFolderUri, fileName, svgFileName,
 					testFolderUri, testFileName, packageName, trace);
 		}
 	}
@@ -420,23 +491,13 @@ public class VerificationHandler extends TaskHandler {
 			this.serialize(traceFolderUri, traceFileName, testFolderUri, testFileName, basePackage, trace);
 		}
 		
-		public void serialize(String traceFolderUri, String traceFileName, Integer serial, String svgFileName,
+		public void serialize(String traceFolderUri, String traceFileName, String svgFileName,
 				String testFolderUri, String testFileName, String basePackage, ExecutionTrace trace) throws IOException {
 			
-			// Model
-			String fileName;
-			Integer id;
-			
-			if (serial == null) {
-				Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
-						traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
-				fileName = fileNamePair.getKey();
-				id = fileNamePair.getValue();
-			}
-			else {
-				fileName = traceFileName + serial.toString() + ".get";
-				id = serial;
-			}
+			// Model			
+			Entry<String, Integer> fileNamePair = fileUtil.getFileName(new File(traceFolderUri),
+					traceFileName, GammaFileNamer.EXECUTION_XTEXT_EXTENSION);
+			String fileName = fileNamePair.getKey();
 			
 			serializer.saveModel(trace, traceFolderUri, fileName);
 			
@@ -446,14 +507,14 @@ public class VerificationHandler extends TaskHandler {
 				String plantUmlString = transformer.execute();
 				SvgSerializer serializer = SvgSerializer.INSTANCE;
 				String svg = serializer.serialize(plantUmlString);
-				String svgFileNameWithId = svgFileName + id;
+				String svgFileNameWithId = svgFileName;
 				fileUtil.saveString(traceFolderUri + File.separator + svgFileNameWithId + ".svg", svg);
 			}
 			
 			// Test
 			boolean serializeTest = testFolderUri != null && testFileName != null && basePackage != null;
 			if (serializeTest) {
-				String className = testFileName + id;
+				String className = testFileName;
 				
 				TestGenerator testGenerator = new TestGenerator(trace, basePackage, className);
 				String testCode = testGenerator.execute();

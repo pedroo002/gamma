@@ -13,19 +13,25 @@ package hu.bme.mit.gamma.theta.verification
 import hu.bme.mit.gamma.util.InterruptableCallable
 import hu.bme.mit.gamma.util.ThreadRacer
 import hu.bme.mit.gamma.verification.util.AbstractVerification
+//import hu.bme.mit.gamma.verification.util.AbstractVerifier.ExtendedResult
 import hu.bme.mit.gamma.verification.util.AbstractVerifier.Result
 import java.io.File
 import java.util.logging.Level
+import hu.bme.mit.gamma.util.FileUtil
+import hu.bme.mit.gamma.trace.util.TraceUtil
 
 class ThetaVerification extends AbstractVerification {
 	// Singleton
 	public static final ThetaVerification INSTANCE = new ThetaVerification
 	protected new() {}
 	//
+	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
+	//
+	protected final extension TraceUtil traceUtil = TraceUtil.INSTANCE
 	
 	override Result execute(File modelFile, File queryFile, String[] arguments) {
 		val fileName = modelFile.name
-		val packageFileName = fileName.unfoldedPackageFileName
+		val packageFileName = fileName.toUnhiddenFileName.unfoldedPackageFileName
 		val gammaPackage = ecoreUtil.normalLoad(modelFile.parent, packageFileName)
 		val queries = fileUtil.loadString(queryFile)
 		
@@ -51,8 +57,9 @@ class ThetaVerification extends AbstractVerification {
 					}
 					
 					override void cancel() {
+						val currentThread = Thread.currentThread
 						verifier.cancel
-						logger.log(Level.INFO, '''Theta verification instance with "«argument»" has been cancelled''')
+						logger.log(Level.INFO, '''Theta verification instance with "«argument»" has been cancelled on thread «currentThread.name»''')
 					}
 					
 				}
@@ -67,7 +74,6 @@ class ThetaVerification extends AbstractVerification {
 				result = result.extend(newResult)
 			}
 		}
-		
 		return result
 	}
 	
