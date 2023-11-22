@@ -12,16 +12,19 @@ package hu.bme.mit.gamma.uppaal.verification
 
 import hu.bme.mit.gamma.verification.util.AbstractVerifier.Result
 import java.io.File
+import hu.bme.mit.gamma.util.FileUtil
 
 class XstsUppaalVerification extends AbstractUppaalVerification {
 	// Singleton
 	public static final XstsUppaalVerification INSTANCE = new XstsUppaalVerification
 	protected new() {}
 	//
+	protected final extension FileUtil fileUtil = FileUtil.INSTANCE
+	//
 	
 	override Result execute(File modelFile, File queryFile, String[] arguments) {
 		val fileName = modelFile.name
-		val packageFileName = fileName.unfoldedPackageFileName
+		val packageFileName = fileName.toUnhiddenFileName.unfoldedPackageFileName
 		val gammaPackage = ecoreUtil.normalLoad(modelFile.parent, packageFileName)
 		val verifier = new UppaalVerifier
 		val argument = arguments.head
