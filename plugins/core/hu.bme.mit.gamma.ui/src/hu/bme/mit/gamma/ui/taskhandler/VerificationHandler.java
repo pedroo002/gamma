@@ -315,12 +315,7 @@ public class VerificationHandler extends TaskHandler {
 		if (verification.isBackAnnotateToOriginal()) {
 			List<ExecutionTrace> backAnnotatedTraces = new ArrayList<ExecutionTrace>();
 			for (ExecutionTrace trace : retrievedTraces) {
-				Component newComponent = trace.getComponent();
-				Component originalComponent = statechartEcoreUtil.loadAndReplaceToOriginalComponent(newComponent);
-				UnfoldedExecutionTraceBackAnnotator backAnnotator =
-						new UnfoldedExecutionTraceBackAnnotator(trace, originalComponent);
-				ExecutionTrace orignalTrace = backAnnotator.execute();
-				backAnnotatedTraces.add(orignalTrace);
+				backAnnotatedTraces.add(backannotateToOriginal(trace));
 			}
 			retrievedTraces.clear();
 			retrievedTraces.addAll(backAnnotatedTraces);
@@ -339,6 +334,17 @@ public class VerificationHandler extends TaskHandler {
 			}
 			serializer.serialize(targetFolderUri, fileName, verificationResult);
 		}
+	}
+	
+	//
+	
+	public ExecutionTrace backannotateToOriginal(ExecutionTrace trace) {
+		Component newComponent = trace.getComponent();
+		Component originalComponent = statechartEcoreUtil.loadAndReplaceToOriginalComponent(newComponent);
+		UnfoldedExecutionTraceBackAnnotator backAnnotator =
+				new UnfoldedExecutionTraceBackAnnotator(trace, originalComponent);
+		ExecutionTrace orignalTrace = backAnnotator.execute();
+		return orignalTrace;
 	}
 	
 	//
