@@ -203,5 +203,9 @@
       <genFeatures notify="false" createChild="false" propertySortChoices="true" ecoreFeature="ecore:EReference expression.ecore#//DeclarationReferenceAnnotation/declaration"/>
     </genClasses>
     <genClasses ecoreClass="expression.ecore#//UnremovableVariableDeclarationAnnotation"/>
+    <genClasses ecoreClass="expression.ecore#//StringTypeDefinition"/>
+    <genClasses ecoreClass="expression.ecore#//StringLiteralExpression">
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute expression.ecore#//StringLiteralExpression/value"/>
+    </genClasses>
   </genPackages>
 </genmodel:GenModel>

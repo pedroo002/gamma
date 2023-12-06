@@ -73,6 +73,7 @@ import hu.bme.mit.gamma.expression.model.RecordAccessExpression;
 import hu.bme.mit.gamma.expression.model.RecordLiteralExpression;
 import hu.bme.mit.gamma.expression.model.RecordTypeDefinition;
 import hu.bme.mit.gamma.expression.model.ReferenceExpression;
+import hu.bme.mit.gamma.expression.model.StringLiteralExpression;
 import hu.bme.mit.gamma.expression.model.SubtractExpression;
 import hu.bme.mit.gamma.expression.model.TrueExpression;
 import hu.bme.mit.gamma.expression.model.Type;
@@ -880,6 +881,12 @@ public class ExpressionUtil {
 		DecimalLiteralExpression decimalLiteral = factory.createDecimalLiteralExpression();
 		decimalLiteral.setValue(value);
 		return decimalLiteral;
+	}
+	
+	public StringLiteralExpression toStringLiteral(String value) {
+		StringLiteralExpression stringLiteral = factory.createStringLiteralExpression();
+		stringLiteral.setValue(value);
+		return stringLiteral;
 	}
 	
 	public Integer toInteger(LiteralExpression literalExpression) {
