@@ -185,7 +185,8 @@ class StatechartAnnotator {
 	// Transition coverage
 	
 	protected def needsAnnotation(Transition transition) {
-		return !(transition.sourceState instanceof EntryState)
+		//return !(transition.sourceState instanceof EntryState)
+		return true
 	}
 	
 	protected def createTransitionVariable(Transition transition,
